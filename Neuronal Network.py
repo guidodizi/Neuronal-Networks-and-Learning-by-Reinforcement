@@ -109,6 +109,7 @@ dataset = createDataset(firstFunction, 40, -1, 1)
 n_inputs = len(dataset[0]) - 1
 
 network = initialize_network(n_inputs, 2)
+#l_train = 0.5  epochs = 100  => error = 0.150 => ಠ_ಠ
 train_network(network, dataset, 0.5, 100)
 
 for row in dataset:
