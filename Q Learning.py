@@ -2,12 +2,11 @@ from random import randint
 import time
  
 
-EPISODES = 30
+EPISODES = 1
 
 class Qlearning:
 
 	def __init__(self):
-		self.alpha = 0.1
 		self.gamma = 0.9 
 
 		self.states = []
@@ -18,6 +17,7 @@ class Qlearning:
 	 
 		self.R = [[0 for x in range(self.statesCount)] for y in range(self.statesCount)]  # reward lookup
 		self.Q = [[0 for x in range(self.statesCount)] for y in range(self.statesCount)]  # Q learning
+		#self.Q = [[randint(-50,50) for x in range(self.statesCount)] for y in range(self.statesCount)]  # Q learning
 
 		self.actions = []
 		for i in range(0,36):
@@ -37,10 +37,12 @@ class Qlearning:
 		self.R[7][13] = 60
 		self.R[8][14] = 60
 		self.R[9][8] = -20
-		self.R[25][19] = 60
-		self.R[26][20] = 60
+		self.R[25][19] = 20
+		self.R[26][20] = 20
 
 		self.statesGoal = [13,14,19,20]
+		
+		self.epsilon = float(1) / EPISODES
 
 	def run(self): 
 	# 1. Set parameter , and environment reward matrix R 
@@ -58,30 +60,64 @@ class Qlearning:
 			while state not in self.statesGoal:
 			
 				#Obtengo las acciones del estado actual
-				actionsFromState = self.actions[state]
-					
-				#Selecciono una de las acciones posibles en forma aleatoria				
-				index = randint(0,len(actionsFromState)-1)			
-				action = actionsFromState[index]				
+				actionsFromState = self.actions[state]	
+				rand = float(randint(0,9))/ 10			
+						
+				if (rand > self.epsilon):
+					#EXPLORACION: Selecciono una de las acciones posibles en forma aleatoria				
+					index = randint(0,len(actionsFromState)-1)			
+					action = actionsFromState[index]				
+				else:
+					#EXPLOTACION: Selecciono la mejor accion posible									
+					action = self.max(state)
+
 				nextState = action
-				
 				#Using this possible action, consider to go to the next state
 				q = self.Q[state][action]
 				maxQ = self.maxQ(nextState)
 				r = self.R[state][action]
 
+
 				#value = q + self.alpha * (r + self.gamma * maxQ - q)
 				value = r + self.gamma*(maxQ)
 				
+				print "estoy en estado: " + str(state)
+				print "accion: " + str(action)
+				print "next state: " + str(nextState)
+				print "q : " + str(q) + " maxQ: " + str(maxQ) + " r: " + str(r)
+				print "value: " + str(value)
+				print "----------"
+
 				stack.append({'state':state,'value':value,'action':action})
 				#self.Q[state][action] =  value
 				#Set the next state as the current state
 				state = nextState
 
-			#recorro en orden inverso el stack y actualizo el Q
+			#recorro en orden inverso el stack y actualizo el Q		
 			while len(stack) > 0:
 				item = stack.pop()		
 				self.Q[item['state']][item['action']] = item['value']
+			self.epsilon += float(1) / EPISODES
+
+	def max (self,s):
+		actionsFromState = self.actions[s]
+		maxValue = -100000
+		maxStates = []
+		for i in range(0,len(actionsFromState)):
+			nextState = actionsFromState[i]
+			value = self.Q[s][nextState]			
+			if value > maxValue:
+				maxStates = []
+				maxValue = value
+				maxStates.append(nextState)
+			elif value == maxValue:
+				maxStates.append(nextState)
+
+		if len(maxStates) == 1:
+			return maxStates[0]
+		else:
+			rand = randint(0,len(maxStates)-1)
+			return maxStates[rand]
 
 	def maxQ (self,s):
 		actionsFromState = self.actions[s]
@@ -92,7 +128,7 @@ class Qlearning:
 			
 			if value > maxValue:
 				maxValue = value
-		return maxValue
+		return int(maxValue)
 		
 	def policy (self,state):
 		actionsFromState = self.actions[state]
@@ -126,11 +162,7 @@ class Qlearning:
 
 
 ##MAIN
-BEGIN = int(round(time.time() * 1000)) 
 obj = Qlearning() 
 obj.run()
 obj.printResult()
 obj.showPolicy()
-
-END = int(round(time.time() * 1000))
-print("Time: " + str((END - BEGIN) / 1000.0) + " sec.")
