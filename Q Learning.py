@@ -2,43 +2,45 @@ from random import randint
 import time
  
 
-EPISODES = 5
+EPISODES = 30
 
 class Qlearning:
 
 	def __init__(self):
 		self.alpha = 0.1
 		self.gamma = 0.9 
- 
-# states A,B,C,D,E,F
 
-		self.stateA = 0
-		self.stateB = 1
-		self.stateC = 2
-		self.stateD = 3
-		self.stateE = 4
-		self.stateF = 5
-		
-		self.statesCount = 6
-		self.states =  [self.stateA,self.stateB,self.stateC,self.stateD,self.stateE,self.stateF] 
-	 
-		# Q(s,a)= Q(s,a) + alpha * (R(s,a) + gamma * Max(next state, all actions) - Q(s,a))
+		self.states = []
+		for i in range(0,36):
+			self.states.append(i)
+
+		self.statesCount = 36
 	 
 		self.R = [[0 for x in range(self.statesCount)] for y in range(self.statesCount)]  # reward lookup
 		self.Q = [[0 for x in range(self.statesCount)] for y in range(self.statesCount)]  # Q learning
-	 
-		self.actionsFromA = [self.stateB, self.stateD]
-		self.actionsFromB = [self.stateA, self.stateC, self.stateE]
-		self.actionsFromC = [self.stateC]
-		self.actionsFromD = [self.stateA, self.stateE]
-		self.actionsFromE = [self.stateB,self.stateD, self.stateF]
-		self.actionsFromF = [self.stateC, self.stateE]
-		self.actions = [self.actionsFromA, self.actionsFromB, self.actionsFromC,
-				self.actionsFromD, self.actionsFromE, self.actionsFromF]
-	 
-		self.stateNames = ["A", "B", "C", "D", "E", "F"]
-		self.R[self.stateB][self.stateC] = 100 # from b to c
-		self.R[self.stateF][self.stateC] = 100
+
+		self.actions = []
+		for i in range(0,36):
+			actionsFrom = []
+			if i % 5 != 0: # si no esta en la columna de mas a la derecha agrego el de su der
+				actionsFrom.append(i+1) 
+			if i % 6 != 0: # si no esta en la columna de mas a la izq agrego el de su izq
+				actionsFrom.append(i-1) 
+			if i > 5: # si no esta en la fila de mas arriba agrego el de arriba
+				actionsFrom.append(i-6) 
+			if i < 30: # si no esta en la fila de mas abajo agrego el de abajo
+				actionsFrom.append(i+6)		
+			self.actions.append(actionsFrom)
+
+
+		self.R[6][7] = -20
+		self.R[7][13] = 60
+		self.R[8][14] = 60
+		self.R[9][8] = -20
+		self.R[25][19] = 60
+		self.R[26][20] = 60
+
+		self.statesGoal = [13,14,19,20]
 
 	def run(self): 
 	# 1. Set parameter , and environment reward matrix R 
@@ -50,17 +52,17 @@ class Qlearning:
 	#		Get maximum Q value of this next state based on all possible actions o 
 	#		Compute o Set the next state as the current state
 		for i in range(0,EPISODES):
+			stack = []
 			#Select random initial state
 			state = randint(0,self.statesCount-1)		
-			while state != self.stateC:
+			while state not in self.statesGoal:
 			
 				#Obtengo las acciones del estado actual
 				actionsFromState = self.actions[state]
 					
 				#Selecciono una de las acciones posibles en forma aleatoria				
 				index = randint(0,len(actionsFromState)-1)			
-				action = actionsFromState[index]
-				
+				action = actionsFromState[index]				
 				nextState = action
 				
 				#Using this possible action, consider to go to the next state
@@ -68,18 +70,19 @@ class Qlearning:
 				maxQ = self.maxQ(nextState)
 				r = self.R[state][action]
 
-				print "estoy en estado: " + str(state)
-				print "accion: " + str(action)
-				print "next state: " + str(nextState)
-				print "q : " + str(q) + " maxQ: " + str(maxQ) + " r: " + str(r)
 				#value = q + self.alpha * (r + self.gamma * maxQ - q)
-				value = r + self.gamma*
-				print "value: " + str(value)
-				self.Q[state][action] =  value
-	 
+				value = r + self.gamma*(maxQ)
+				
+				stack.append({'state':state,'value':value,'action':action})
+				#self.Q[state][action] =  value
 				#Set the next state as the current state
 				state = nextState
-					
+
+			#recorro en orden inverso el stack y actualizo el Q
+			while len(stack) > 0:
+				item = stack.pop()		
+				self.Q[item['state']][item['action']] = item['value']
+
 	def maxQ (self,s):
 		actionsFromState = self.actions[s]
 		maxValue = -100000
@@ -110,7 +113,7 @@ class Qlearning:
 			stateN = ""
 			for j in range(0,len(self.Q[i])):
 				stateN += str(self.Q[i][j]) + " "
-			print "out from " + self.stateNames[i] + ": " + stateN
+			print "out from " + str(self.states[i]) + ": " + stateN
 	
 	# policy is maxQ(states)
 	def showPolicy(self):
@@ -118,7 +121,7 @@ class Qlearning:
 		for i in range(0,len(self.states)):
 			sfrom = self.states[i]
 			sto =  self.policy(sfrom)
-			print("from "+ self.stateNames[sfrom]+" goto "+ self.stateNames[sto])
+			print("from "+ str(self.states[sfrom]) + " goto "+ str(self.states[sto]))
                  
 
 
