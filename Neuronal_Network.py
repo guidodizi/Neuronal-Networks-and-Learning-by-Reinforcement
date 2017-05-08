@@ -1,6 +1,8 @@
 import math
+import sys
 from random import seed
 from random import random
+import numpy as np
 
 # Initialize a network
 def initialize_network(n_inputs, n_hidden):
@@ -25,19 +27,26 @@ def transfer(activation):
 # Forward propagate input to a network output
 def forward_propagate(network, row):
 	inputs = row
+	#hidden layer
+	new_inputs = []
 	for layer in network:
 		new_inputs = []
 		for neuron in layer:
 			activation = activate(neuron['weights'], inputs)
 			# neuron['output'] = transfer(activation)
 			neuron['output'] = math.tanh(activation)
+			# neuron['output'] = activation
 			new_inputs.append(neuron['output'])
 		inputs = new_inputs
+    # only one node in output layer
 	return inputs[0]
 
+
 # Calculate the derivative of an neuron output
+# def transfer_derivative(output):
+# 	return output * (1.0 - output)
 def transfer_derivative(output):
-	return output * (1.0 - output)
+	return 1 - math.tanh(output)**2
 
 # Backpropagate error and store in neurons
 def backward_propagate_error(network, expected):
@@ -51,9 +60,8 @@ def backward_propagate_error(network, expected):
 					error += (neuron['weights'][j] * neuron['delta'])
 				errors.append(error)
 		else:
-			for j in range(len(layer)):
-				neuron = layer[j]
-				errors.append(expected - neuron['output'])
+			neuron = layer[0]
+			errors.append(expected - neuron['output'])
 		for j in range(len(layer)):
 			neuron = layer[j]
 			neuron['delta'] = errors[j] * transfer_derivative(neuron['output'])
@@ -68,22 +76,6 @@ def update_weights(network, row, l_rate):
 			for j in range(len(inputs)):
 				neuron['weights'][j] += l_rate * neuron['delta'] * inputs[j]
 			neuron['weights'][-1] += l_rate * neuron['delta']
-
-
-def createDataset (function, amount, min, max):
-	diff = float (max - min) / amount
-	dataset = []
-	current = min
-	for i in range(amount):
-		example = []
-		example.append(current)
-		example.append(function(current))
-		dataset.append(example)
-		current += diff
-	return dataset
-
-def firstFunction (x):
-	return (x**3) - (x**2) + 1 
 
 # Train a network for a fixed number of epochs
 def train_network(network, train, l_rate, n_epoch):
@@ -100,17 +92,100 @@ def train_network(network, train, l_rate, n_epoch):
 def predict(network, row):
 	return forward_propagate(network, row)
 
+def createDataset (function, amount, min, max):
+	dataset = []
+	if function == third_function:
+		cases = int(math.ceil(math.sqrt(amount)))
+		print cases
+		x_values = np.random.uniform(-1, 1, cases)
+		y_values = np.random.uniform(-1, 1, cases)
+		for x in x_values:
+			for y in y_values:
+				example = []
+				example.append(x)
+				example.append(y)
+				example.append(function(x,y))
+				dataset.append(example)
+	else:
+		x_values = np.random.uniform(-1, 1, amount)
+		for x in x_values:
+			example = []
+			example.append(x)
+			example.append(function(x))
+			dataset.append(example)
+	return dataset
 
-# Test training backprop algorithm
+def first_function (x):
+	return (x**3) - (x**2) + 1 
+def second_function (x):
+	return math.sin(1.5 * math.pi * x) 
+def third_function (x, y):
+	return 1 - x**2 - y**2
+
+
+
 seed(1)
-dataset = createDataset(firstFunction, 40, -1, 1)
+while True:
+	function = input("Choose a number of function: \n 1) f(x) = x^3 - x^2 + 1 \n 2) g(x) = sen(1.5 * PI * x) \n 3) h(x,y) = 1 - x^2 - y^2 \n")
+	if function == 1:
+		function = first_function
+		break
+	elif function == 2:
+		function = second_function
+		break		
+	elif function == 3:
+		function == third_function
+		break
+	else:
+		print "\nSorry, invalid number\n"
+		continue
+while True:
+    number = input("Enter number of neurons on hidden layer: ")
+    try:
+        n_hidden = int(number)
+        if n_hidden < 0: 
+            print("Sorry, number of neurons must be a positive integer, try again")
+            continue
+        break
+    except ValueError:
+        print("That's not an int!")
 
+# while True:
+# 	number = input("Enter a learning train constant: ")
+# 	try:
+# 		l_train = int(number)
+# 		if l_train < 0: 
+# 			print("Sorry, learning train constant must be a positive integer, try again")
+# 			continue
+# 		elif l_train > 1:  
+# 			print("Sorry, learning train constant is recommended to be less than 1, try again")
+# 			continue
+# 		break
+# 	except ValueError:
+# 			print("That's not an int!")
+while True:
+	number = input("Enter a number of iterations: ")
+	try:
+		epochs = int(number)
+		if epochs < 0: 
+			print("Sorry, learning train constant must be a positive integer, try again")
+			continue
+		break
+	except ValueError:
+			print("That's not an int!")   
+
+# function = second_function
+# n_hidden = 50
+l_train = 0.1
+# epochs = 200
+
+dataset = createDataset(function, 40, -1, 1)
 #number of variables on input
 n_inputs = len(dataset[0]) - 1
-
-network = initialize_network(n_inputs, 2)
-#l_train = 0.5  epochs = 100  => error = 0.150 => ಠ_ಠ
-train_network(network, dataset, 0.5, 100)
+#initalize the network
+network = initialize_network(n_inputs, n_hidden)
+#l_train = 0.5  epochs = 100  => error = 0.150
+train_network(network, dataset, l_train, epochs)
 
 for row in dataset:
 	prediction = predict(network, row)
