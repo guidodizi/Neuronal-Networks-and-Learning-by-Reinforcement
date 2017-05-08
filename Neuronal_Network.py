@@ -186,7 +186,7 @@ seed(1)
 function = second_function
 n_hidden = 50
 l_train = 0.1
-epochs = 100000
+epochs = 500
 
 dataset = createDataset(function, 40, -1, 1)
 #number of variables on input
@@ -205,25 +205,22 @@ for row in dataset:
 inputs = get_from_dataset(dataset, 0)
 expecteds= get_from_dataset(dataset, -1)
 
-# epochs = list(xrange(100))
-# print epochs
-# error = Scatter(
-# 	x=epochs,
-# 	y=sum_errors
+epochs = list(xrange(500))
+print epochs
+error = Scatter(
+	x=epochs,
+	y=sum_errors
+)
+# original = Scatter(
+# 	x=inputs,
+# 	y=expecteds
 # )
-original = Scatter(
-	x=inputs,
-	y=expecteds
-)
-network_prediction = Scatter(
-	x=inputs,
-	y=predictions
-)
-data = Data([original, network_prediction])
+# network_prediction = Scatter(
+# 	x=inputs,
+# 	y=predictions
+# )
+# data = Data([original, network_prediction])
+data = Data([error])
 
-py.plot(data, filename = 'second_function 100000 NN')
-# for layer in network:
+py.plot(data, filename = 'Error in second_function 500')
 
-
-
-# 	print(layer)
