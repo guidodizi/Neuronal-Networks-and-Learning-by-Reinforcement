@@ -3,8 +3,8 @@ import sys
 from random import seed
 from random import random
 import numpy as np
-import plotly.plotly as py
-from plotly.graph_objs import *
+# import plotly.plotly as py
+# from plotly.graph_objs import *
 
 # Initialize a network
 def initialize_network(n_inputs, n_hidden):
