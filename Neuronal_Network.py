@@ -3,8 +3,8 @@ import sys
 from random import seed
 from random import random
 import numpy as np
-import plotly.plotly as py
-from plotly.graph_objs import *
+# import plotly.plotly as py
+# from plotly.graph_objs import *
 
 # Initialize a network
 def initialize_network(n_inputs, n_hidden):
@@ -22,10 +22,6 @@ def activate(weights, inputs):
 		activation += weights[i] * inputs[i]
 	return activation
 
-# Transfer neuron activation
-def transfer(activation):
-	return 1.0 / (1.0 + math.exp(-activation))
-
 # Forward propagate input to a network output
 def forward_propagate(network, row):
 	inputs = row
@@ -35,9 +31,7 @@ def forward_propagate(network, row):
 		new_inputs = []
 		for neuron in layer:
 			activation = activate(neuron['weights'], inputs)
-			# neuron['output'] = transfer(activation)
 			neuron['output'] = math.tanh(activation)
-			# neuron['output'] = activation
 			new_inputs.append(neuron['output'])
 		inputs = new_inputs
     # only one node in output layer
@@ -45,8 +39,6 @@ def forward_propagate(network, row):
 
 
 # Calculate the derivative of an neuron output
-# def transfer_derivative(output):
-# 	return output * (1.0 - output)
 def transfer_derivative(output):
 	return 1 - math.tanh(output)**2
 
@@ -134,96 +126,95 @@ def get_from_dataset (dataset ,position):
 	return array
 
 seed(1)
-# while True:
-# 	function = input("Choose a number of function: \n 1) f(x) = x^3 - x^2 + 1 \n 2) g(x) = sen(1.5 * PI * x) \n 3) h(x,y) = 1 - x^2 - y^2 \n")
-# 	if function == 1:
-# 		function = first_function
-# 		break
-# 	elif function == 2:
-# 		function = second_function
-# 		break		
-# 	elif function == 3:
-# 		function == third_function
-# 		break
-# 	else:
-# 		print "\nSorry, invalid number\n"
-# 		continue
-# while True:
-#     number = input("Enter number of neurons on hidden layer: ")
-#     try:
-#         n_hidden = int(number)
-#         if n_hidden < 0: 
-#             print("Sorry, number of neurons must be a positive integer, try again")
-#             continue
-#         break
-#     except ValueError:
-#         print("That's not an int!")
+while True:
+	function = input("Choose a number of function: \n 1) f(x) = x^3 - x^2 + 1 \n 2) g(x) = sen(1.5 * PI * x) \n 3) h(x,y) = 1 - x^2 - y^2 \n")
+	if function == 1:
+		function = first_function
+		break
+	elif function == 2:
+		function = second_function
+		break		
+	elif function == 3:
+		function == third_function
+		break
+	else:
+		print "\nSorry, invalid number\n"
+		continue
+while True:
+    number = input("Enter number of neurons on hidden layer: ")
+    try:
+        n_hidden = int(number)
+        if n_hidden < 0: 
+            print("Sorry, number of neurons must be a positive integer, try again")
+            continue
+        break
+    except ValueError:
+        print("That's not an int!")
 
-# # while True:
-# # 	number = input("Enter a learning train constant: ")
-# # 	try:
-# # 		l_train = int(number)
-# # 		if l_train < 0: 
-# # 			print("Sorry, learning train constant must be a positive integer, try again")
-# # 			continue
-# # 		elif l_train > 1:  
-# # 			print("Sorry, learning train constant is recommended to be less than 1, try again")
-# # 			continue
-# # 		break
-# # 	except ValueError:
-# # 			print("That's not an int!")
-# while True:
-# 	number = input("Enter a number of iterations: ")
-# 	try:
-# 		epochs = int(number)
-# 		if epochs < 0: 
-# 			print("Sorry, learning train constant must be a positive integer, try again")
-# 			continue
-# 		break
-# 	except ValueError:
-# 			print("That's not an int!")   
+while True:
+	number = input("Enter a learning train constant: ")
+	try:
+		l_train = float(number)
+		if l_train < 0: 
+			print("Sorry, learning train constant must be a positive integer, try again")
+			continue
+		elif l_train > 1:  
+			print("Sorry, learning train constant is recommended to be less than 1, try again")
+			continue
+		break
+	except ValueError:
+			print("That's not an int!")
+while True:
+	number = input("Enter a number of iterations: ")
+	try:
+		epochs = int(number)
+		if epochs < 0: 
+			print("Sorry, learning train constant must be a positive integer, try again")
+			continue
+		break
+	except ValueError:
+			print("That's not an int!")   
 
-function = second_function
-n_hidden = 50
-l_train = 0.1
-epochs = 100000
+# function = third_function
+# n_hidden = 50
+# l_train = 0.1
+# epochs = 500
 
 dataset = createDataset(function, 40, -1, 1)
 #number of variables on input
 n_inputs = len(dataset[0]) - 1
 #initalize the network
 network = initialize_network(n_inputs, n_hidden)
-#l_train = 0.5  epochs = 100  => error = 0.150
+#returns array of errors, index is iteration
 sum_errors = train_network(network, dataset, l_train, epochs)
-
+#array of predictions
 predictions = []
 for row in dataset:
 	prediction = predict(network, row)
 	predictions.append(prediction)
-	print('Input=%.5f, Expected=%.5f, Got=%.5f' % (row[:-1][0], row[-1], prediction))
+	print('Expected=%.5f, Got=%.5f' % (row[-1], prediction))
 
-inputs = get_from_dataset(dataset, 0)
-expecteds= get_from_dataset(dataset, -1)
+# inputs1 = get_from_dataset(dataset, 0)
+# inputs2 = get_from_dataset(dataset, 1)
+# expecteds= get_from_dataset(dataset, -1)
 
-# epochs = list(xrange(100))
-# print epochs
+# epochs = list(xrange(500))
 # error = Scatter(
 # 	x=epochs,
 # 	y=sum_errors
 # )
-original = Scatter(
-	x=inputs,
-	y=expecteds
-)
-network_prediction = Scatter(
-	x=inputs,
-	y=predictions
-)
-data = Data([original, network_prediction])
+# original = Scatter3d(
+# 	x=inputs1,
+# 	y=inputs2,
+# 	z=expecteds
+# )
+# network_prediction = Scatter3d(
+# 	x=inputs1,
+# 	y=inputs2,
+# 	z=predictions
+# )
+# data = Data([original, network_prediction])
+# data = Data([error])
 
-py.plot(data, filename = 'second_function 100000 NN')
-# for layer in network:
+# py.plot(data, filename = 'Error in third_function 500')
 
-
-
-# 	print(layer)
